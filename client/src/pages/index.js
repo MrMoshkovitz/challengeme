@@ -1,124 +1,138 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Switch, Route, Redirect } from "react-router-dom";
-import ThemeApi from '../services/Theme'
-import Statistics from './Statistics';
-import { Logged } from '../context/LoggedInContext';
-import Register from './Register/Register';
-import Login from './Login';
-import Cookies from 'js-cookie';
-import Forgot from './Forgot/Forgot';
-import VlidatingMail from './Register/VlidatingMail';
-import network from '../services/network';
-import Landing from './Landing';
-import { AnimatePresence } from 'framer-motion';
-import ChallengePage from "../components/ChallengePage/mainPage/ChallengePage";
-import Home from './Home/Home'; // post- Shahar folder revolution
-import NewChallengeForm from '../components/NewChallenge/NewChallengeForm';
-import Header from '../components/Header/Header'
+import { Logged } from "../context/LoggedInContext";
+import AllChallenges from "../context/AllChallengesContext";
+import FilteredLabels from '../context/FilteredLabelsContext';
+import Register from "./Authentication/Register/Register";
+import Login from "./Authentication/Login";
+import Cookies from "js-cookie";
+import Forgot from "./Authentication/ForgotPasswordPage/Forgot";
+import ValidatingMail from "./Authentication/Register/ValidatingMail";
+import network from "../services/network";
+import Landing from "./Authentication/Landing";
+import { AnimatePresence } from "framer-motion";
+import Header from "../components/Header/Header";
+import ErrorBoundry from "../components/ErrorBoundry";
+import Loading from "../components/Loading/Loading";
+import "../index.css";
+
+const NotFound = lazy(() => import('../pages/NotFound'));
+const Home = lazy(() => import("./Home/Home"));
+const UserInfo = lazy(() => import("./UserInfo/UserInfo"));
+const ChallengePage = lazy(() => import("./OneChallenge/ChallengePage"));
 
 export default function Router() {
-  const [darkTheme, setDarkTheme] = useState(false);
-  const [logged, setLogged] = useState(false);
-  const [loading, setLoading] = useState(true);
+    const [darkTheme, setDarkTheme] = useState(false);
+    const [logged, setLogged] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [challenges, setChallenges] = useState([]);
+    const [filteredLabels, setFilteredLabels] = useState([]);
 
-  useEffect(() => {
-    const previousTheme = localStorage.getItem('darkMode'); //get previous selected theme
-    if (previousTheme === 'false') {
-      setDarkTheme(false);
-    } else if (previousTheme === 'true') {
-      setDarkTheme(true);
-    } else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        //check default theme of the user
-        setDarkTheme(true);
-      }
-    }
-  })
-
-  useEffect(() => {
-    
-    if(window.matchMedia('(prefers-color-scheme: dark)').matches){
-      setDarkTheme(true)
-    }
-  },[])
-
-  useEffect(() => {
-    // auth
-    (async () => {
-      if (Cookies.get('accessToken')) {
-        try {
-          const { data } = await network.get('/api/v1/auth/validateToken');
-          setLogged(data);
-          setLoading(false);
-        } catch (e) {
-          setLoading(false);
-          console.error(e);
+    useEffect(() => {
+        if (logged) {
+            const previousTheme = localStorage.getItem("darkMode"); //get previous selected theme
+            if (previousTheme === "false") {
+                setDarkTheme(false);
+            } else if (previousTheme === "true") {
+                setDarkTheme(true);
+            } else {
+                if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    //check default theme of the user
+                    setDarkTheme(true);
+                }
+            }
         }
-      } else {
-        setLoading(false);
-      }
-    })();
-  }, []);
+        (async () => {
+            try {
+                const { data: challengesFromServer } = await network.get("/api/v1/challenges");
+                typeof challengesFromServer === "object" && setChallenges(challengesFromServer);
+            } catch { }
+        })();
+    }, [logged]);
 
-  return (
-    <BrowserRouter>
-      {!loading ? (
-        !logged ? (
-          <Logged.Provider value={{ logged, setLogged }}>
-            <AnimatePresence>
-              <Route
-                render={({ location }) => (
-                  <Switch location={location} key={location.pathname}>
-                    <Route exact path='/register'>
-                      <Register />
-                    </Route>
-                    <Route exact path='/login'>
-                      <Login />
-                    </Route>
-                    <Route exact path='/forgot'>
-                      <Forgot />
-                    </Route>
-                    <Route exact path='/auth'>
-                      <VlidatingMail />
-                    </Route>
-                    <Route exact path='/'>
-                      <Landing />
-                    </Route>
-                    <Route path='*'>
-                      <Redirect to='/' />
-                    </Route>
-                  </Switch>
+    useEffect(() => {
+        // auth
+        (async () => {
+            if (Cookies.get("accessToken")) {
+                try {
+                    const { data } = await network.get("/api/v1/auth/validateToken");
+                    setLogged(data);
+                    setLoading(false);
+                } catch (e) {
+                    setLoading(false);
+                }
+            } else {
+                setLoading(false);
+            }
+        })();
+    }, []);
+
+    return (
+        <BrowserRouter>
+            {!loading ? (
+                !logged ? (
+                    <Logged.Provider value={{ logged, setLogged }}>
+                        <AnimatePresence>
+                            <ErrorBoundry>
+                                <Route
+                                    render={({ location }) => (
+                                        <Switch location={location} key={location.pathname}>
+                                            <Route exact path="/register">
+                                                <Register />
+                                            </Route>
+                                            <Route exact path="/login">
+                                                <Login />
+                                            </Route>
+                                            <Route exact path="/forgot">
+                                                <Forgot />
+                                            </Route>
+                                            <Route exact path="/auth">
+                                                <ValidatingMail />
+                                            </Route>
+                                            <Route exact path="/">
+                                                <Landing />
+                                            </Route>
+                                            <Route path="*">
+                                                <Redirect to="/" />
+                                            </Route>
+                                        </Switch>
+                                    )}
+                                />
+                            </ErrorBoundry>
+                        </AnimatePresence>
+                    </Logged.Provider>
+                ) : (
+                        <Logged.Provider value={{ logged, setLogged }}>
+                            <AllChallenges.Provider value={{ challenges }}>
+                                <FilteredLabels.Provider value={{ filteredLabels, setFilteredLabels }}>
+                                    <Header darkMode={darkTheme} setDarkMode={setDarkTheme} />
+                                    <div className={darkTheme ? "dark" : "light"} >
+                                        <Suspense fallback={<Loading darkMode={darkTheme} />}>
+                                            <ErrorBoundry>
+                                                <Switch >
+                                                    <Route exact path="/challenges/:id">
+                                                        <ChallengePage darkMode={darkTheme} />
+                                                    </Route>
+                                                    <Route exact path="/user_info">
+                                                        <UserInfo darkMode={darkTheme} />
+                                                    </Route>
+                                                    <Route exact path="/">
+                                                        <Home />
+                                                    </Route>
+                                                    <Route path="*">
+                                                        <NotFound />
+                                                    </Route>
+                                                </Switch>
+                                            </ErrorBoundry>
+                                        </Suspense>
+                                    </div>
+                                </FilteredLabels.Provider>
+                            </AllChallenges.Provider>
+                        </Logged.Provider>
+                    )
+            ) : (
+                    <Loading firstLoading={true} />
                 )}
-              />
-            </AnimatePresence>
-          </Logged.Provider>
-        ) : (
-          <Logged.Provider value={{ logged, setLogged }}>
-            <ThemeApi.Provider value={{ darkTheme, setDarkTheme }}>
-              <Header />
-              <Switch>
-                <Route exact path='/'>
-                  <Home />
-                </Route>
-                <Route path='/add_challenge'>
-                  <NewChallengeForm />
-                </Route>
-                <Route path='/statistics'>
-                  <Statistics />
-                </Route>
-                <Route exact path='/challenges/:challengeParamId'>
-                      <ChallengePage />
-                    </Route>
-                <Route path='*'>
-                  <Redirect to='/' />
-                </Route>
-              </Switch>
-            </ThemeApi.Provider>
-          </Logged.Provider>
-        )
-      ) : (
-        <div></div>
-      )}
-    </BrowserRouter>
-  );
+        </BrowserRouter>
+    );
 }

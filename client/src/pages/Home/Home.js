@@ -1,88 +1,62 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import network from '../../services/network';
+import React, { useEffect, useState, useContext } from 'react';
 import ChallengeCard from '../../components/ChallengeCard/ChallengeCard';
-import "./Home.css"
-import ThemeApi from "../../services/Theme"
-import FilterMenu from '../../components/FilterMenu/FilterMenu';
-import { useLocation } from "react-router-dom"
+import './Home.css';
+import AllChallenges from '../../context/AllChallengesContext';
+import FilteredLabels from '../../context/FilteredLabelsContext';
 
-//function to get query params
-function useQuery() {    
-  return new URLSearchParams(useLocation().search);
-}
-
-export default function HomePage() {
-  const [challenges, setChallenges] = useState([]);
-  const [filtered, setFiltered] = useState(false);
-  const [filters, setFilters] = useState({labels:[]});
-  const darkMode = React.useContext(ThemeApi).darkTheme
-  let query = useQuery();
-
-
-  //function to sort the searched filters
-  const getFilters = useCallback(
-    () => {
-      const filterNames = Object.keys(filters)
-      const filterString = filterNames.map(name=>{
-        const value = filters[name]
-        let valueString = (typeof value === 'object')
-        ? value.join(',')
-        :value
-        return `${name}=${valueString}`
-      }).join('&')
-      return filterString
-    },
-    [filters]
-  ) 
+export default function Home() {
+  const allChallenges = useContext(AllChallenges).challenges;
+  const filteredLabels = useContext(FilteredLabels);
+  const [challengesFiltered, setChallengesFiltered] = useState(allChallenges);
 
   useEffect(() => {
     (async () => {
-      try{
-        //checking if there is query params and the page loaded once
-        if(filtered!==true && query.get("labelId")){
-          const { data: challengesFromServer } = await network.get(
-          `/api/v1/challenges?labels=${query.get("labelId")}`)
-          //checking if there is the challenges data is array
-          typeof challengesFromServer === "object" &&
-          setChallenges(challengesFromServer)
-          setFiltered(true)
+      try {
+        if (filteredLabels.filteredLabels.length > 0) {
+          const filteredByLabelChallenges = [];
+          allChallenges.forEach((challenge) => {
+            if (filteredLabels.filteredLabels.every((labelChallenge) => challenge.Labels.map((label) => label.id).includes(labelChallenge))) {
+              if (!filteredByLabelChallenges.includes(challenge)) {
+                filteredByLabelChallenges.push(challenge);
+              }
+            }
+          });
+          setChallengesFiltered(filteredByLabelChallenges);
+        } else {
+          setChallengesFiltered(allChallenges);
         }
-        else{
-          const { data: challengesFromServer } = await network.get(
-          '/api/v1/challenges?'+ getFilters())
-          console.log(challengesFromServer)
-          typeof challengesFromServer === "object" &&
-          console.log(challengesFromServer);
-          setChallenges(challengesFromServer)          
-        }
-      }catch(e){}
-    })();  
-  }, [filters]);  
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+    // eslint-disable-next-line
+  }, [filteredLabels]);
 
-  
+  useEffect(() => () => filteredLabels.setFilteredLabels([])
+    // eslint-disable-next-line
+    , [])
+
   return (
-    <div 
-    className={darkMode && "dark"}>
-      <div className ="home-page">
-      <FilterMenu 
-      formerSelection={filters} 
-      updateFilters={setFilters} />
-     <div className={"challenges-container"}>
-      {challenges.map((challenge) => (
-        <ChallengeCard
-        key={challenge.id}
-        challengeId={challenge.id}
-        createdAt={challenge.createdAt}
-        name={challenge.name}
-        description={challenge.description}
-        repositoryName = {challenge.repositoryName}
-        labels = {challenge.Labels}
-        rating = {challenge.Reviews}
-        />
-        ))}
+    <div>
+      <div className="home-page">
+        <div className="challenges-container">
+          {challengesFiltered.length > 0 ? (
+            challengesFiltered.map((challenge) => (
+              <ChallengeCard
+                key={challenge.id}
+                challengeId={challenge.id}
+                name={challenge.name}
+                description={challenge.description}
+                repositoryName={challenge.repositoryName}
+                labels={challenge.Labels}
+                rating={challenge.averageRaiting}
+                submissions={challenge.submissionsCount}
+                createdAt={challenge.createdAt}
+                authorName={challenge.Author.userName}
+              />
+            ))) : <h1>Not Found</h1>}
         </div>
-     
-    </div>
       </div>
-  )
+    </div>
+  );
 }
