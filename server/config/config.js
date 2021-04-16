@@ -6,8 +6,12 @@ module.exports = {
     password: process.env.DB_PASSWORD || null,
     database: process.env.DB_NAME || 'challenge',
     host: process.env.DB_HOST || '127.0.0.1',
+    port: process.env.DB_PORT || 3306,
     dialect: 'mysql',
-    define: { underscored: true },
+    define: {
+      underscored: true,
+      paranoid: true,
+    },
     logging: false,
     // "seederStorage": "sequelize",
     // "seederStorageTableName": "sequelize_seeds"
@@ -18,7 +22,10 @@ module.exports = {
     database: process.env.DB_TEST || 'challenge_test',
     host: process.env.DB_HOST || '127.0.0.1',
     dialect: 'mysql',
-    define: { underscored: true },
+    define: {
+      underscored: true,
+      paranoid: true,
+    },
     logging: false,
   },
   production: {
@@ -26,7 +33,12 @@ module.exports = {
     password: process.env.DB_PASSWORD || null,
     database: process.env.DB_NAME || 'challenge',
     host: process.env.DB_HOST || '127.0.0.1',
+    port: process.env.DB_PORT || 3306,
     dialect: 'mysql',
-    define: { underscored: true },
+    define: {
+      underscored: true,
+      paranoid: true,
+    },
+    logging: false,
   },
 };

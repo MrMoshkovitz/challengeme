@@ -2,7 +2,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 const drawerWidth = 240;
 export default makeStyles((theme) => ({
-  appBarRegolar: {
+  appBarRegular: {
     transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -16,17 +16,9 @@ export default makeStyles((theme) => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
   },
-  darkModeToggle: {
-    marginRight: '10px;',
-  },
-  infoButton: {
-    margin: '10px',
-  },
-  logOutButton: {
-    margin: '10px',
-  },
   root: {
     display: 'flex',
+    justifyContent: 'space-between',
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -48,9 +40,9 @@ export default makeStyles((theme) => ({
     marginLeft: 'auto',
     display: 'flex',
     alignItems: 'center',
-    padding: theme.spacing(0, 1),
+    padding: theme.spacing(0, 1, 0, 2),
     ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
   },
   content: {
     flexGrow: 1,
@@ -71,16 +63,63 @@ export default makeStyles((theme) => ({
   list: {
     padding: 0,
   },
+  flexRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginRight: 0,
+  },
+  flexEnd: {
+    justifyContent: 'flex-end',
+  },
   avatarUserInfo: {
     margin: '20px',
   },
   filterButton: {
-    backgroundColor: 'rgb(219,219,219)',
+    fontFamily: 'Ubuntu',
+    fontStyle: 'normal',
+    fontWeight: 'bold',
+    fontSize: '19px',
+    lineHeight: '46px',
+    color: '#ffffff',
+    textAlign: 'right',
     marginLeft: '10px',
   },
   filterButtonDark: {
     backgroundColor: 'rgb(81,81,81)',
     color: 'white',
     marginLeft: '10px',
+  },
+  drawerPaperDark: {
+    width: drawerWidth,
+    backgroundColor: 'rgb(51,51,51)',
+    boxShadow: '2px 0px 35px 0px black',
+  },
+  menu: {
+    marginTop: '49px',
+  },
+  iconFlex: {
+    display: 'flex',
+    alignItems: 'center',
+    marginRight: '10px',
+  },
+  title: {
+    fontSize: '15px',
+  },
+  flexContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  startFlex: {
+    width: '175px',
+  },
+  middleFlex: {
+    width: '80%',
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  ebdFlex: {
+    width: '240px',
+    display: 'flex',
+    justifyContent: 'flex-end',
   },
 }));

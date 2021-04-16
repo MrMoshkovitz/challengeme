@@ -1,11 +1,9 @@
-const { Router } = require('express');
-
-const router = Router();
+const serviceRouter = require('express').Router();
 const axios = require('axios');
-const handleGithubTokens = require('../../helpers/handleGithubTokens');
+const { handleGithubTokens } = require('../../helpers');
 
 // get repo details if its public
-router.get('/public_repo', async (req, res) => {
+serviceRouter.get('/public-repo', async (req, res) => {
   try {
     const response = await axios.get(
       `https://api.github.com/repos/${req.query.repo_name}`,
@@ -15,14 +13,13 @@ router.get('/public_repo', async (req, res) => {
     );
     handleGithubTokens(response.headers);
     if (!response.data.private) {
-      res.json(response.data.repo);
-    } else {
-      res.status(401).send('Repo is private');
+      return res.json(response.data.repo);
     }
+    return res.status(401).json({ message: 'Repo is private' });
   } catch (error) {
     handleGithubTokens(error.response.headers);
-    res.status(400).send('Repo does not exist');
+    return res.status(400).send('Repo does not exist');
   }
 });
 
-module.exports = router;
+module.exports = serviceRouter;

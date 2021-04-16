@@ -1,42 +1,32 @@
 const reviewsRouter = require('express').Router();
+const checkToken = require('../../middleware/checkToken');
 const checkAdmin = require('../../middleware/checkAdmin');
-const { Challenge, Review, User } = require('../../models');
+const { Review, User } = require('../../models');
 
-reviewsRouter.get('/byChallenge/:challengeId', async (req, res) => {
+// get reviews by challenge with params
+reviewsRouter.get('/:challengeId', async (req, res) => {
   try {
     const { challengeId } = req.params;
+
     const reviews = await Review.findAll({
-      where: { challengeId },
+      where: {
+        challengeId,
+      },
+      attributes: ['id', 'challengeId', 'title', 'content', 'rating', 'createdAt'],
       include: {
         model: User,
         attributes: ['userName'],
       },
     });
-    res.json(reviews);
+    return res.json(reviews);
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: 'Cannot process request' });
+    return res.status(400).json({ message: 'Cannot process request' });
   }
 });
 
-reviewsRouter.get('/byUser/:challengeId/:userId', async (req, res) => {
-  try {
-    const { userId, challengeId } = req.params;
-    const reviews = await Review.findAll({
-      where: { userId, challengeId },
-      include: {
-        model: Challenge,
-        attributes: ['name', 'id'],
-      },
-    });
-    res.json(reviews);
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ message: 'Cannot process request' });
-  }
-});
-
-reviewsRouter.post('/:challengeId', async (req, res) => {
+// add review to challenge
+reviewsRouter.post('/:challengeId', checkToken, async (req, res) => {
   const { title, content, rating } = req.body;
   const { userId } = req.user;
   const query = {
@@ -48,27 +38,28 @@ reviewsRouter.post('/:challengeId', async (req, res) => {
   };
   try {
     await Review.create(query);
-    res.json({ message: 'Uploaded new review!' });
+    return res.status(201).json({ message: 'Uploaded new review!' });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: 'Cannot process request' });
+    return res.status(400).json({ message: 'Cannot process request' });
   }
 });
 
 //= ============================= Admin Routes ======================================
 
-reviewsRouter.delete('/:reviewId', checkAdmin, async (req, res) => {
-  const { reviewId } = req.params
+// delete review from challenge
+reviewsRouter.delete('/:reviewId', checkToken, checkAdmin, async (req, res) => {
+  const { reviewId } = req.params;
   try {
     await Review.destroy({
       where: {
-        id: reviewId
-      }
+        id: reviewId,
+      },
     });
-    res.sendStatus(204)
+    return res.sendStatus(204);
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: 'Cannot process request' });
+    return res.status(400).json({ message: 'Cannot process request' });
   }
 });
 

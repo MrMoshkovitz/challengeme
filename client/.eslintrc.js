@@ -5,7 +5,8 @@ module.exports = {
     },
     "extends": [
         "plugin:react/recommended",
-        "airbnb"
+        "airbnb",
+        'plugin:jest/recommended'
     ],
     "globals": {
         "Atomics": "readonly",
@@ -19,9 +20,16 @@ module.exports = {
         "sourceType": "module"
     },
     "plugins": [
-        "react"
+        "react",
+        "jest"
     ],
     "rules": {
+        'jest/no-disabled-tests': 'warn',
+        'jest/no-focused-tests': 'error',
+        'jest/no-identical-title': 'error',
+        'jest/prefer-to-have-length': 'warn',
+        'jest/valid-expect': 'error',
+        'jest/no-done-callback': 0,
         'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
         'linebreak-style': ['error', 'windows'],
         'func-names': ['error', 'never'],
@@ -40,14 +48,13 @@ module.exports = {
         'jsx-a11y/no-static-element-interactions': 0,
         'jsx-a11y/no-noninteractive-element-interactions': 0,
         'react/prop-types': 0,
-        indent: ['error', 2, { SwitchCase: 1 }],
+        'indent': ['error', 2, { SwitchCase: 1 }],
         'react/jsx-props-no-spreading': 0,
         'no-unused-expressions': 0,
         'jsx-a11y/anchor-is-valid': 0,
         'react/no-deprecated': 0,
         'no-param-reassign': 0,
         'class-methods-use-this': 0,
-        'no-debugger': 0,
         'import/prefer-default-export': 0,
     }
 };
